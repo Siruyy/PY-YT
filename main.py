@@ -5,9 +5,9 @@ import requests
 
 def sanitize_filename(filename):
     invalid_chars = {'/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', '.'}
-    return ''.join(char if char not in invalid_chars else '_' for char in filename)
+    return ''.join(char if char.isalnum() or char in [' ', '-', '_'] else '_' for char in filename)
 
-def download_with_progress_bar(url, output_path='.', resolution='highest'):
+def download_youtube_video(url, output_path='.', resolution='highest', chunk_size_mb=7):
     try:
         # Create a YouTube object
         yt = YouTube(url)
@@ -30,6 +30,10 @@ def download_with_progress_bar(url, output_path='.', resolution='highest'):
         # Set the output path for the downloaded file
         output_file_path = os.path.join(output_path, f'{video_title}.mp4')
 
+        # Set the chunk size (in bytes)
+        chunk_size_bytes = chunk_size_mb * 1024 * 1024
+        video_stream.chunk_size = chunk_size_bytes
+
         # Get the video stream URL
         video_url = video_stream.url
 
@@ -48,7 +52,7 @@ def download_with_progress_bar(url, output_path='.', resolution='highest'):
                 unit_scale=True,
                 unit_divisor=1024,
         ) as bar:
-            for data in response.iter_content(chunk_size=1024):
+            for data in response.iter_content(chunk_size=chunk_size_bytes):
                 bar.update(len(data))
                 f.write(data)
 
@@ -63,4 +67,4 @@ if __name__ == "__main__":
     resolution = input("Enter desired resolution (or 'highest'): ")
     output_path = input("Enter the output path (press Enter for the current directory): ") or '.'
     
-    download_with_progress_bar(video_url, output_path, resolution)
+    download_youtube_video(video_url, output_path, resolution)
