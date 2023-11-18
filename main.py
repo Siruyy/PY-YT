@@ -1,6 +1,11 @@
+import os
 from pytube import YouTube
 from tqdm import tqdm
 import requests
+
+def sanitize_filename(filename):
+    invalid_chars = {'/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', '.'}
+    return ''.join(char if char not in invalid_chars else '_' for char in filename)
 
 def download_with_progress_bar(url, output_path='.', resolution='highest'):
     try:
@@ -19,8 +24,11 @@ def download_with_progress_bar(url, output_path='.', resolution='highest'):
         # Get the video title for naming the file
         video_title = yt.title
 
+        # Sanitize the video title for file naming
+        video_title = sanitize_filename(video_title)
+
         # Set the output path for the downloaded file
-        output_file_path = f'{output_path}/{video_title}.mp4'
+        output_file_path = os.path.join(output_path, f'{video_title}.mp4')
 
         # Get the video stream URL
         video_url = video_stream.url
@@ -50,6 +58,7 @@ def download_with_progress_bar(url, output_path='.', resolution='highest'):
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
+    # Example usage:
     video_url = input("Enter YouTube video URL: ")
     resolution = input("Enter desired resolution (or 'highest'): ")
     output_path = input("Enter the output path (press Enter for the current directory): ") or '.'
